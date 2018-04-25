@@ -1,19 +1,23 @@
-package life;
+package life.model;
 
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
+import life.model.cell.Cell;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-public class LifeModel {
+public class SimpleLifeModel implements LifeModel {
 
-    private boolean[][] field;
-    private boolean[][] changed;
+    protected boolean[][] field;
+    protected boolean[][] changed;
 
-    public LifeModel(int w, int h) {
+    public SimpleLifeModel(int w, int h) {
         field = new boolean[h][w];
         changed = new boolean[h][w];
+        resetModel();
+    }
+
+    @Override
+    public void resetModel() {
         Random random = new Random();
         for (int i = 0; i < field.length; i++)
             for (int j = 0; j < field[0].length; j++)
@@ -23,6 +27,7 @@ public class LifeModel {
                     field[i][j] = false;
     }
 
+    @Override
     public void updateModel() {
         for (int i = 0; i < field.length; i++) {
             for (int j = 0; j < field[0].length; j++) {
@@ -52,6 +57,7 @@ public class LifeModel {
         return count;
     }
 
+    @Override
     public ArrayList<Cell> getLivingCells() {
         ArrayList<Cell> livingCells = new ArrayList<>();
         for (int i = 0; i < field.length; i++)
