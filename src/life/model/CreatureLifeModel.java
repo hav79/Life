@@ -1,8 +1,6 @@
 package life.model;
 
 import life.model.cell.Cell;
-import life.model.cell.CreatureCell;
-import life.model.cell.CreatureType;
 import life.model.cell.Infusorian;
 
 import java.util.ArrayList;

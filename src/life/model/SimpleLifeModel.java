@@ -46,12 +46,16 @@ public class SimpleLifeModel implements LifeModel {
 
     private int getNeighborsCount(int y, int x) {
         int count = 0;
-        for (int i = -1; i <= 1; i++)
-            if (y + i >= 0 && y + i < field.length)
-                for (int j = -1; j <= 1; j++)
-                    if (x + j >= 0 && x + j < field[0].length)
-                        if (field[y + i][x + j])
-                            count++;
+        int newX = 0;
+        int newY = 0;
+        for (int i = -1; i <= 1; i++) {
+            newY = y + i < 0 ? field.length - 1 : y + i >= field.length ? 0 : y + i;
+            for (int j = -1; j <= 1; j++) {
+                newX = x + j < 0 ? field[0].length - 1 : x + j >= field[0].length ? 0 : x + j;
+                if (field[newY][newX])
+                    count++;
+            }
+        }
         if (field[y][x])
             count--;
         return count;

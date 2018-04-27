@@ -70,25 +70,25 @@ public class EvolutionLifeModel implements LifeModel {
 
         // Если вокруг не меньше 5 протоплазм - стираем их
         // и случайную из квадрата 3х3 превращаем в инфузорию
-        if (protoCount >= 5) {
+        if (protoCount >= 4) {
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++)
                     if (checkFieldType(x + j, y + i, CreatureType.PROTOPLASM)) {
-                        changed[y + i][x + j] = new CreatureCell(x + j, y + i);
+                        setField(x + j, y + i, CreatureType.EMPTY);
                     }
             boolean ok = true;
             while (ok) {
                 int i = random.nextInt(3) - 1;
                 int j = random.nextInt(3) - 1;
                 if (checkFieldType(x + j, y + i, CreatureType.PROTOPLASM)) {
-                    changed[y + i][x + j] = new Infusorian(x + j, y + i);
+                    setField(x + j, y + i, CreatureType.INFUSORIAN);
                     ok = false;
                 }
             }
-        } else if (infusorianCount == 3) {
-            changed[y][x] = new Infusorian(x, y);
-        } else {
-            changed[y][x] = new Protoplasm(x, y);
+        } else if (infusorianCount == 2 || infusorianCount == 3) {
+            setField(x, y, CreatureType.INFUSORIAN);
+        } else /*if (protoCount == 2 || protoCount == 3)*/{
+            setField(x, y, CreatureType.PROTOPLASM);
         }
     }
 
@@ -97,18 +97,18 @@ public class EvolutionLifeModel implements LifeModel {
 
         // Если вокруг не меньше 4 протоплазм - стираем их
         // и случайную из квадрата 3х3 превращаем в инфузорию
-        if (protoCount >= 4) {
+        if (protoCount >= 3) {
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++)
                     if (checkFieldType(x + j, y + i, CreatureType.PROTOPLASM)) {
-                        changed[y + i][x + j] = new CreatureCell(x + j, y + i);
+                        setField(x + j, y + i, CreatureType.EMPTY);
                     }
             boolean ok = true;
             while (ok) {
                 int i = random.nextInt(3) - 1;
                 int j = random.nextInt(3) - 1;
                 if (checkFieldType(x + j, y + i, CreatureType.PROTOPLASM)) {
-                    changed[y + i][x + j] = new Infusorian(x + j, y + i);
+                    setField(x + j, y + i, CreatureType.INFUSORIAN);
                     ok = false;
                 }
             }
@@ -120,21 +120,22 @@ public class EvolutionLifeModel implements LifeModel {
 
         // Если вокруг инфузорий меньше 2 или больше 3 - стираем ее
         if (infusorianCount < 2 || infusorianCount > 3)
-            changed[y][x] = new CreatureCell(x, y);
+            setField(x, y, CreatureType.EMPTY);
 
         // Если 3 инфузории образовали ряд
         // их стираем и создаем животное с начальной энергией 5
         if (checkFieldType(x, y - 1, CreatureType.INFUSORIAN)
                 && checkFieldType(x, y + 1, CreatureType.INFUSORIAN)) {
-            changed[y - 1][x] = new CreatureCell(x, y - 1);
-            changed[y + 1][x] = new CreatureCell(x, y - 1);
-            changed[y][x] = new Animal(x, y);
+            setField(x, y - 1, CreatureType.EMPTY);
+            setField(x, y + 1, CreatureType.EMPTY);
+            setField(x, y, CreatureType.ANIMAL);
         } else if (checkFieldType(x - 1, y, CreatureType.INFUSORIAN)
                 && checkFieldType(x + 1, y, CreatureType.INFUSORIAN)) {
-            changed[y][x - 1] = new CreatureCell(x - 1, y);
-            changed[y][x + 1] = new CreatureCell(x + 1, y);
-            changed[y][x] = new Animal(x, y);
-        }
+            setField(x - 1, y, CreatureType.EMPTY);
+            setField(x + 1, y, CreatureType.EMPTY);
+            setField(x, y, CreatureType.ANIMAL);
+        } else if (infusorianCount == 2 || infusorianCount == 3)
+            setField(x, y, CreatureType.INFUSORIAN);
     }
 
     private void updateAnimalField(int y, int x) {
@@ -161,26 +162,26 @@ public class EvolutionLifeModel implements LifeModel {
     private void moveAnimal(int y, int x, int dy, int dx) {
         if (checkFieldType(x + dx, y + dy, CreatureType.EMPTY)) {
             // Передвинуть животное, уменьшить энергию на 1
-            changed[y + dy][x + dx] = new Animal(x + dx, y + dy);
-            changed[y + dy][x + dx].setEnergy(field[y][x].getEnergy() - 1);
-            changed[y][x] = new CreatureCell(x, y);
-            if (changed[y + dy][x + dx].getEnergy() == 0)
-                changed[y + dy][x + dx] = new CreatureCell(x + dx, y + dy);
+            setField(x + dx, y + dy, CreatureType.ANIMAL);
+            getNewField(x + dx, y + dy).setEnergy(field[y][x].getEnergy() - 1);
+            setField(x, y, CreatureType.EMPTY);
+            if (getNewField(x + dx, y + dy).getEnergy() == 0)
+                setField(x + dx, y + dy, CreatureType.EMPTY);
         } else if (checkFieldType(x + dx, y + dy, CreatureType.PROTOPLASM)) {
             // На месте протоплазмы будет животное, энергия не меняется
-            changed[y + dy][x + dx] = new Animal(x + dx, y + dy);
-            changed[y][x] = new CreatureCell(x, y);
+            setField(x + dx, y + dy, CreatureType.ANIMAL);
+            setField(x, y, CreatureType.EMPTY);
         } else if (checkFieldType(x + dx, y + dy, CreatureType.INFUSORIAN)) {
             // На месте инфузории - животное, энергия увеличивается
-            changed[y + dy][x + dx] = new Animal(x + dx, y + dy);
-            changed[y + dy][x + dx].setEnergy(field[y][x].getEnergy() + 1);
-            changed[y][x] = new CreatureCell(x, y);
+            setField(x + dx, y + dy, CreatureType.ANIMAL);
+            getNewField(x + dx, y + dy).setEnergy(field[y][x].getEnergy() + 1);
+            setField(x, y, CreatureType.EMPTY);
         } else if (checkFieldType(x + dx, y + dy, CreatureType.ANIMAL)) {
             // В новой позиции - животное с суммарной энергией
-            changed[y + dy][x + dx] = new Animal(x + dx, y + dy);
-            changed[y + dy][x + dx].setEnergy(field[y + dy][x + dx].getEnergy()
-                    + field[y][x].getEnergy());
-            changed[y][x] = new CreatureCell(x, y);
+            setField(x + dx, y + dy, CreatureType.ANIMAL);
+            getNewField(x + dx, y + dy).setEnergy(getField(x + dx, y + dy).getEnergy()
+                    + getField(x, y).getEnergy());
+            setField(x, y, CreatureType.EMPTY);
         }
 
     }
@@ -195,17 +196,28 @@ public class EvolutionLifeModel implements LifeModel {
         return count;
     }
 
-    private boolean checkBounds(int x, int y) {
-        if (x < 0 || x >= field[0].length
-                || y < 0 || y >= field.length)
-            return false;
-        else {
-            return true;
-        }
+    private boolean checkFieldType(int x, int y, CreatureType type) {
+        int newY = y < 0 ? field.length - 1 : y >= field.length ? 0 : y;
+        int newX = x < 0 ? field[0].length - 1 : x >= field[0].length ? 0 : x;
+        return field[newY][newX].getType() == type;
     }
 
-    private boolean checkFieldType(int x, int y, CreatureType type) {
-        return checkBounds(x, y) && field[y][x].getType() == type;
+    private void setField(int x, int y, CreatureType type) {
+        int newY = y < 0 ? field.length - 1 : y >= field.length ? 0 : y;
+        int newX = x < 0 ? field[0].length - 1 : x >= field[0].length ? 0 : x;
+        changed[newY][newX] = CreatureFactory.getCreature(newX, newY, type);
+    }
+
+    private CreatureCell getNewField(int x, int y) {
+        int newY = y < 0 ? field.length - 1 : y >= field.length ? 0 : y;
+        int newX = x < 0 ? field[0].length - 1 : x >= field[0].length ? 0 : x;
+        return changed[newY][newX];
+    }
+
+    private CreatureCell getField(int x, int y) {
+        int newY = y < 0 ? field.length - 1 : y >= field.length ? 0 : y;
+        int newX = x < 0 ? field[0].length - 1 : x >= field[0].length ? 0 : x;
+        return field[newY][newX];
     }
 
     @Override
