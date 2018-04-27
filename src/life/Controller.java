@@ -18,6 +18,7 @@ import javafx.scene.layout.RowConstraints;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 import life.model.CreatureLifeModel;
+import life.model.EvolutionLifeModel;
 import life.model.cell.Cell;
 import life.model.LifeModel;
 import life.model.SimpleLifeModel;
@@ -56,11 +57,13 @@ public class Controller {
                 timeline.stop();
                 startStopButton.setText("Start");
                 resetButton.setDisable(false);
+                choiceModel.setDisable(false);
                 isRunning = false;
             } else {
                 isRunning = true;
                 startStopButton.setText("Stop");
                 resetButton.setDisable(true);
+                choiceModel.setDisable(true);
                 timeline.play();
             }
         });
@@ -107,6 +110,7 @@ public class Controller {
         ObservableList<LifeModel> models = FXCollections.observableArrayList();
         models.add(new SimpleLifeModel(WIDTH, HEIGHT));
         models.add(new CreatureLifeModel(WIDTH, HEIGHT));
+        models.add(new EvolutionLifeModel(WIDTH, HEIGHT));
         choiceModel.setItems(models);
         choiceModel.setConverter(new StringConverter<LifeModel>() {
             @Override

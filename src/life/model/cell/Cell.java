@@ -19,4 +19,12 @@ public class Cell extends Circle {
     public int getY() {
         return y;
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
+    }
 }

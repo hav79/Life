@@ -3,6 +3,7 @@ package life.model;
 import life.model.cell.Cell;
 import life.model.cell.CreatureCell;
 import life.model.cell.CreatureType;
+import life.model.cell.Infusorian;
 
 import java.util.ArrayList;
 
@@ -18,7 +19,7 @@ public class CreatureLifeModel extends SimpleLifeModel {
         for (int i = 0; i < field.length; i++)
             for (int j = 0; j < field[0].length; j++)
                 if (field[i][j])
-                    livingCells.add(new CreatureCell(j, i, CreatureType.INFUSORIAN));
+                    livingCells.add(new Infusorian(j, i));
         return livingCells;
     }
 }
