@@ -8,12 +8,10 @@ import java.util.Random;
 public class EvolutionLifeModel implements LifeModel {
 
     protected CreatureCell[][] field;
-    protected CreatureCell[][] changed;
     private Random random = new Random();
 
     public EvolutionLifeModel(int w, int h) {
         field = new CreatureCell[h][w];
-        changed = new CreatureCell[h][w];
         resetModel();
     }
 
@@ -21,7 +19,6 @@ public class EvolutionLifeModel implements LifeModel {
     public void resetModel() {
         for (int i = 0; i < field.length; i++) {
             for (int j = 0; j < field[0].length; j++) {
-                changed[i][j] = new CreatureCell(j, i);
                 if (random.nextInt(4) == 0)
                     field[i][j] = new Protoplasm(j, i);
                 else
@@ -32,35 +29,21 @@ public class EvolutionLifeModel implements LifeModel {
 
     @Override
     public void updateModel() {
-        for (int i = 0; i < field.length; i++) {
-            for (int j = 0; j < field[0].length; j++) {
-                switch (field[i][j].getType()) {
-                    case EMPTY:
-                        updateEmptyCell(i, j);
-                        break;
-                    case PROTOPLASM:
-                        updateProtoplasmField(i, j);
-                        break;
-                    case INFUSORIAN:
-                        updateInfusorianFiefd(i, j);
-                        break;
-                    case ANIMAL:
-                        updateAnimalField(i, j);
-                        break;
-                }
-            }
-        }
-
-        for (int i = 0; i < field.length; i++) {
-            for (int j = 0; j < field[0].length; j++) {
-                field[i][j] = changed[i][j];
-            }
-        }
-        changed = new CreatureCell[field.length][field[0].length];
-        for (int i = 0; i < changed.length; i++) {
-            for (int j = 0; j < changed[0].length; j++) {
-                changed[i][j] = new CreatureCell(j, i);
-            }
+        int i = random.nextInt(field.length);
+        int j = random.nextInt(field[0].length);
+        switch (field[i][j].getType()) {
+            case EMPTY:
+                updateEmptyCell(i, j);
+                break;
+            case PROTOPLASM:
+                updateProtoplasmField(i, j);
+                break;
+            case INFUSORIAN:
+                updateInfusorianFiefd(i, j);
+                break;
+            case ANIMAL:
+                updateAnimalField(i, j);
+                break;
         }
     }
 
@@ -70,24 +53,21 @@ public class EvolutionLifeModel implements LifeModel {
 
         // Если вокруг не меньше 5 протоплазм - стираем их
         // и случайную из квадрата 3х3 превращаем в инфузорию
-        if (protoCount >= 4) {
+        if (protoCount >= 5) {
+            int ri = random.nextInt(3) - 1;
+            int rj = random.nextInt(3) - 1;
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++)
                     if (checkFieldType(x + j, y + i, CreatureType.PROTOPLASM)) {
-                        setField(x + j, y + i, CreatureType.EMPTY);
+                        if (j == rj && i == ri) {
+                            setField(x + j, y + i, CreatureType.INFUSORIAN);
+                        } else {
+                            setField(x + j, y + i, CreatureType.EMPTY);
+                        }
                     }
-            boolean ok = true;
-            while (ok) {
-                int i = random.nextInt(3) - 1;
-                int j = random.nextInt(3) - 1;
-                if (checkFieldType(x + j, y + i, CreatureType.PROTOPLASM)) {
-                    setField(x + j, y + i, CreatureType.INFUSORIAN);
-                    ok = false;
-                }
-            }
         } else if (infusorianCount == 2 || infusorianCount == 3) {
             setField(x, y, CreatureType.INFUSORIAN);
-        } else /*if (protoCount == 2 || protoCount == 3)*/{
+        } else {
             setField(x, y, CreatureType.PROTOPLASM);
         }
     }
@@ -97,21 +77,18 @@ public class EvolutionLifeModel implements LifeModel {
 
         // Если вокруг не меньше 4 протоплазм - стираем их
         // и случайную из квадрата 3х3 превращаем в инфузорию
-        if (protoCount >= 3) {
+        if (protoCount >= 4) {
+            int ri = random.nextInt(3) - 1;
+            int rj = random.nextInt(3) - 1;
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++)
                     if (checkFieldType(x + j, y + i, CreatureType.PROTOPLASM)) {
-                        setField(x + j, y + i, CreatureType.EMPTY);
+                        if (j == rj && i == ri) {
+                            setField(x + j, y + i, CreatureType.INFUSORIAN);
+                        } else {
+                            setField(x + j, y + i, CreatureType.EMPTY);
+                        }
                     }
-            boolean ok = true;
-            while (ok) {
-                int i = random.nextInt(3) - 1;
-                int j = random.nextInt(3) - 1;
-                if (checkFieldType(x + j, y + i, CreatureType.PROTOPLASM)) {
-                    setField(x + j, y + i, CreatureType.INFUSORIAN);
-                    ok = false;
-                }
-            }
         }
     }
 
@@ -205,13 +182,13 @@ public class EvolutionLifeModel implements LifeModel {
     private void setField(int x, int y, CreatureType type) {
         int newY = y < 0 ? field.length - 1 : y >= field.length ? 0 : y;
         int newX = x < 0 ? field[0].length - 1 : x >= field[0].length ? 0 : x;
-        changed[newY][newX] = CreatureFactory.getCreature(newX, newY, type);
+        field[newY][newX] = CreatureFactory.getCreature(newX, newY, type);
     }
 
     private CreatureCell getNewField(int x, int y) {
         int newY = y < 0 ? field.length - 1 : y >= field.length ? 0 : y;
         int newX = x < 0 ? field[0].length - 1 : x >= field[0].length ? 0 : x;
-        return changed[newY][newX];
+        return field[newY][newX];
     }
 
     private CreatureCell getField(int x, int y) {
@@ -223,7 +200,6 @@ public class EvolutionLifeModel implements LifeModel {
     @Override
     public ArrayList<Cell> getLivingCells() {
         ArrayList<Cell> livingCells = new ArrayList<>();
-//        printModel();
         for (int i = 0; i < field.length; i++) {
             for (int j = 0; j < field[0].length; j++) {
                 try {
@@ -236,16 +212,5 @@ public class EvolutionLifeModel implements LifeModel {
             }
         }
         return livingCells;
-    }
-
-    private void printModel() {
-        for (int i = 0; i < field.length; i++) {
-            for (int j = 0; j < field[0].length; j++) {
-                System.out.print(field[i][j] + "\t");
-            }
-            System.out.println();
-        }
-        System.out.println();
-        System.out.println();
     }
 }
